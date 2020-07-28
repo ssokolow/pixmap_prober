@@ -6,6 +6,11 @@ Not as flexible as it should be on the pixel formats because this was just me
 getting nerd-sniped on something I had no need for myself.
 """
 
+__author__ = "Stephan Sokolow (deitarion/SSokolow)"
+__appname__ = "Pixmap Prober"
+__version__ = "0.1a1"
+__license__ = "MIT"
+
 import math, sys
 
 # pylint: disable=import-error,no-name-in-module
@@ -146,3 +151,5 @@ if __name__ == '__main__':
     mainwin = MainWin()
     mainwin.show()
     app.exec_()
+
+# vim: set sw=4 sts=4 expandtab :
