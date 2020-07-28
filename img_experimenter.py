@@ -1,170 +1,147 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""Simple tool for experimenting with interpreting raw file data as pixels
 
-# Form implementation generated from reading ui file 'temp.ui'
-#
-# Created by: PyQt5 UI code generator 5.5.1
-#
-# WARNING! All changes made in this file will be lost!
+Not as flexible as it should be on the pixel formats because this was just me
+getting nerd-sniped on something I had no need for myself.
+"""
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+import math, sys
 
+# pylint: disable=import-error,no-name-in-module
+from PyQt5.QtCore import Qt  # type: ignore
+from PyQt5.QtGui import QImage, QPixmap  # type: ignore
+from PyQt5.QtWidgets import QApplication, QFileDialog, QWidget  # type: ignore
 
-class Ui_ImgExperimentDialog(object):
-    def setupUi(self, ImgExperimentDialog):
-        ImgExperimentDialog.setObjectName("ImgExperimentDialog")
-        ImgExperimentDialog.resize(483, 324)
-        self.horizontalLayout = QtWidgets.QHBoxLayout(ImgExperimentDialog)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.img_scroller = QtWidgets.QScrollArea(ImgExperimentDialog)
-        self.img_scroller.setWidgetResizable(True)
-        self.img_scroller.setObjectName("img_scroller")
-        self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 228, 304))
-        self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
-        self.verticalLayout = QtWidgets.QVBoxLayout(
-            self.scrollAreaWidgetContents)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.img_display = QtWidgets.QLabel(self.scrollAreaWidgetContents)
-        self.img_display.setText("")
-        self.img_display.setObjectName("img_display")
-        self.verticalLayout.addWidget(self.img_display)
-        self.img_scroller.setWidget(self.scrollAreaWidgetContents)
-        self.horizontalLayout.addWidget(self.img_scroller)
-        self.formLayout = QtWidgets.QFormLayout()
-        self.formLayout.setObjectName("formLayout")
-        self.lbl_browse = QtWidgets.QLabel(ImgExperimentDialog)
-        self.lbl_browse.setObjectName("lbl_browse")
-        self.formLayout.setWidget(
-            0, QtWidgets.QFormLayout.LabelRole, self.lbl_browse)
-        self.btn_browse = QtWidgets.QPushButton(ImgExperimentDialog)
-        self.btn_browse.setObjectName("btn_browse")
-        self.formLayout.setWidget(
-            0, QtWidgets.QFormLayout.FieldRole, self.btn_browse)
-        self.lbl_stride = QtWidgets.QLabel(ImgExperimentDialog)
-        self.lbl_stride.setObjectName("lbl_stride")
-        self.formLayout.setWidget(
-            2, QtWidgets.QFormLayout.LabelRole, self.lbl_stride)
-        self.lbl_offset = QtWidgets.QLabel(ImgExperimentDialog)
-        self.lbl_offset.setObjectName("lbl_offset")
-        self.formLayout.setWidget(
-            3, QtWidgets.QFormLayout.LabelRole, self.lbl_offset)
-        self.spin_offset = QtWidgets.QSpinBox(ImgExperimentDialog)
-        self.spin_offset.setObjectName("spin_offset")
-        self.formLayout.setWidget(
-            3, QtWidgets.QFormLayout.FieldRole, self.spin_offset)
-        self.spin_stride = QtWidgets.QSpinBox(ImgExperimentDialog)
-        self.spin_stride.setMinimum(1)
-        self.spin_stride.setObjectName("spin_stride")
-        self.formLayout.setWidget(
-            2, QtWidgets.QFormLayout.FieldRole, self.spin_stride)
-        self.lbl_format = QtWidgets.QLabel(ImgExperimentDialog)
-        self.lbl_format.setObjectName("lbl_format")
-        self.formLayout.setWidget(
-            4, QtWidgets.QFormLayout.LabelRole, self.lbl_format)
-        self.combo_format = QtWidgets.QComboBox(ImgExperimentDialog)
-        self.combo_format.setObjectName("combo_format")
-        self.formLayout.setWidget(
-            4, QtWidgets.QFormLayout.FieldRole, self.combo_format)
-        self.lbl_width = QtWidgets.QLabel(ImgExperimentDialog)
-        self.lbl_width.setObjectName("lbl_width")
-        self.formLayout.setWidget(
-            1, QtWidgets.QFormLayout.LabelRole, self.lbl_width)
-        self.spin_width = QtWidgets.QSpinBox(ImgExperimentDialog)
-        self.spin_width.setMinimum(1)
-        self.spin_width.setObjectName("spin_width")
-        self.formLayout.setWidget(
-            1, QtWidgets.QFormLayout.FieldRole, self.spin_width)
-        self.horizontalLayout.addLayout(self.formLayout)
-        self.lbl_browse.setBuddy(self.btn_browse)
-        self.lbl_stride.setBuddy(self.spin_stride)
-        self.lbl_offset.setBuddy(self.spin_offset)
-        self.lbl_format.setBuddy(self.combo_format)
-        self.lbl_width.setBuddy(self.spin_width)
-
-        self.retranslateUi(ImgExperimentDialog)
-        QtCore.QMetaObject.connectSlotsByName(ImgExperimentDialog)
-
-    def retranslateUi(self, ImgExperimentDialog):
-        _translate = QtCore.QCoreApplication.translate
-        ImgExperimentDialog.setWindowTitle(
-            _translate("ImgExperimentDialog", "Explore Data As Image"))
-        self.lbl_browse.setText(
-            _translate("ImgExperimentDialog", "&Load File:"))
-        self.btn_browse.setText(
-            _translate("ImgExperimentDialog", "&Browse..."))
-        self.lbl_stride.setText(_translate("ImgExperimentDialog", "S&tride:"))
-        self.lbl_offset.setText(_translate("ImgExperimentDialog", "&Offset:"))
-        self.lbl_format.setText(
-            _translate("ImgExperimentDialog", "Pi&xel Format:"))
-        self.lbl_width.setText(_translate("ImgExperimentDialog", "&Width:"))
-
-# --- Stuff below this line added manually and must be preserved ---
+from mainwin import Ui_ImgExperimentDialog
 
 
-class MainWin(QtWidgets.QWidget, Ui_ImgExperimentDialog):
-    IMG_FORMATS = {
-        QtGui.QImage.Format_Mono: ('Mono (MSB)', 1 / 8.0),
-        QtGui.QImage.Format_MonoLSB: ('Mono (LSB)', 1 / 8.0),
-        QtGui.QImage.Format_Grayscale8: ('8-bit Grayscale', 1),
-        QtGui.QImage.Format_Grayscale16: ('16-bit Grayscale', 2),
+class MainWin(QWidget, Ui_ImgExperimentDialog):
+    QT_IMG_FORMATS = [
+        ('Mono (MSB)', (QImage.Format_Mono, 1 / 8.0)),
+        ('Mono (LSB)', (QImage.Format_MonoLSB, 1 / 8.0)),
+        ('8-bit Grayscale', (QImage.Format_Grayscale8, 1)),
+        # Qt 5.13+: ('16-bit Grayscale', (QImage.Format_Grayscale16, 2)),
         # TODO: Indexed8 with some default 256-color palette
-        QtGui.QImage.Format_RGB16: ('RGB16', 2),
-        QtGui.QImage.Format_RGB444: ('RGB444', 2),
-        QtGui.QImage.Format_RGB555: ('RGB555', 2),
-        QtGui.QImage.Format_RGB666: ('RGB666', 3),
-        QtGui.QImage.Format_RGB888: ('RGB888', 3),
-        QtGui.QImage.Format_RGB32: ('RGB32', 4),
-        QtGui.QImage.Format_ARGB32: ('ARGB32', 4),
+        ('RGB16', (QImage.Format_RGB16, 2)),
+        ('RGB444', (QImage.Format_RGB444, 2)),
+        ('RGB555', (QImage.Format_RGB555, 2)),
+        ('RGB666', (QImage.Format_RGB666, 3)),
+        ('RGB888', (QImage.Format_RGB888, 3)),
+        ('RGB32', (QImage.Format_RGB32, 4)),
+        ('ARGB4444 (Premultiplied)',
+         (QImage.Format_ARGB4444_Premultiplied, 2)),
+        ('ARGB6666 (Premultiplied)',
+         (QImage.Format_ARGB6666_Premultiplied, 3)),
+        ('ARGB8555 (Premultiplied)',
+         (QImage.Format_ARGB8555_Premultiplied, 3)),
+        ('ARGB8565 (Premultiplied)',
+         (QImage.Format_ARGB8565_Premultiplied, 3)),
+        ('ARGB32', (QImage.Format_ARGB32, 4)),
+        ('ARGB32 (Premultiplied)', (QImage.Format_ARGB32_Premultiplied, 4)),
+        ('RGBX8888', (QImage.Format_RGBX8888, 4)),
+        ('RGBA8888', (QImage.Format_RGBA8888, 4)),
+        ('RGBA8888 (Premultiplied)',
+         (QImage.Format_RGBA8888_Premultiplied, 4)),
         # TODO: The rest of the formats
-    }
+    ]
 
     def __init__(self):
         super(MainWin, self).__init__()
         self.setupUi(self)
 
+        for name, userdata in self.QT_IMG_FORMATS:
+            self.combo_format.addItem(name, userdata)
+
         self.raw_data = b''
-        self.pixmap = QtGui.QPixmap()
+        self.pixmap = QPixmap()
         self.btn_browse.clicked.connect(self.cb_browse)
 
         self.spin_width.valueChanged.connect(self.cb_update_img)
-        self.spin_stride.valueChanged.connect(self.cb_update_img)
         self.spin_offset.valueChanged.connect(self.cb_update_img)
+        self.combo_format.activated.connect(self.cb_update_img)
 
     def cb_browse(self):
-        fname = QtWidgets.QFileDialog.getOpenFileName(self, "Open Data File")
+        """Callback for the Browse button"""
+        fname = QFileDialog.getOpenFileName(self, "Open Data File")
         if fname and fname[0]:
             with open(fname[0], 'rb') as fobj:
                 self.raw_data = fobj.read()
-                self.cb_update_img()
+                self.cb_update_img(reset_width=True)
 
     def cb_resized(self):
+        """Called by anything which requires the image scale to be updated"""
         if not self.pixmap.isNull():
-            self.img_display.setPixmap(self.pixmap.scaled(
-                self.img_display.size(),
-                QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation))
+            pix = self.pixmap
 
-    def cb_update_img(self):
+            # Start with a Nearest Neighbour upscaling scaling to the closest
+            # integer multiple that fits within the target
+            for factor in range(32, 1, -2):
+                candidate = pix.size() * factor
+                target = self.img_display.size()
+
+                if (candidate.width() > target.width() or
+                        candidate.height() > target.height()):
+                    continue
+
+                pix = pix.scaled(candidate,
+                    Qt.KeepAspectRatio, Qt.FastTransformation)
+
+            # Handle downscaling and the final upscale reconciliation using
+            # smoothed scaling
+            self.img_display.setPixmap(pix.scaled(
+                self.img_display.size(),
+                Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+    def cb_update_img(self, event=None, reset_width=False):
+        """Called by anything which changes how the bytes get rendered"""
+        pixfmt, stride_factor = self.combo_format.currentData()
         offset = self.spin_offset.value()
+
+        # TODO: Override stepBy to do this properly
+        if stride_factor < 1:
+            self.spin_width.setMinimum(8)
+            self.spin_width.setSingleStep(8)
+        else:
+            self.spin_width.setMinimum(1)
+            self.spin_width.setSingleStep(1)
+
         data = self.raw_data[offset:]
 
-        self.spin_width.setMaximum(len(data))
+        # The stride factor is the number of pixels per line, so the pixel
+        # count is the number of bytes divided by the stride factor.
+        # We want the maximum width to be pix_count because that corresponds
+        # to a minimum height of 1.
+        #
+        # For some reason, we have to treat stride_factor as 1 when dealing
+        # with formats that pack more than one pixel per byte
+        pix_count = len(data) / max(1, stride_factor)
+        self.spin_width.setMaximum(round(pix_count / 8) * 8)
+
         width = self.spin_width.value()
+        if reset_width:
+            width = int(math.sqrt(pix_count))
+            if stride_factor < 1:
+                width = round(width / 8) * 8
+            self.spin_width.setValue(width)
 
-        height = len(data) // width
-        stride = width  # TODO
+        # TODO: Pad out the final line so it can be displayed too
+        stride = width * stride_factor
+        height = len(data) // stride
 
-        img = QtGui.QImage(data, width, height, stride,
-            QtGui.QImage.Format_Grayscale8)
-        self.pixmap = QtGui.QPixmap.fromImage(img)
+        print(pix_count, width, height, stride)
+        img = QImage(data, width, height, stride, pixfmt)
+        self.pixmap = QPixmap.fromImage(img)
         self.img_display.setPixmap(self.pixmap)
         self.cb_resized()
 
-    def resizeEvent(self, _event=None):
+    def resizeEvent(self, event):
+        """Patch Qt's window resize into cb_resized"""
+        super(MainWin, self).resizeEvent(event)
         self.cb_resized()
 
 if __name__ == '__main__':
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
 
     mainwin = MainWin()
     mainwin.show()
