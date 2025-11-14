@@ -62,6 +62,7 @@ class MainWin(QWidget, Ui_ImgExperimentDialog):
         self.raw_data = b''
         self.pixmap = QPixmap()
         self.btn_browse.clicked.connect(self.cb_browse)
+        self.btn_save.clicked.connect(self.cb_save)
 
         self.spin_width.valueChanged.connect(self.cb_update_img)
         self.spin_offset.valueChanged.connect(self.cb_update_img)
@@ -74,6 +75,7 @@ class MainWin(QWidget, Ui_ImgExperimentDialog):
             self.spin_width.setEnabled(True)
             self.spin_offset.setEnabled(True)
             self.combo_format.setEnabled(True)
+            self.btn_save.setEnabled(True)
             with open(fname[0], 'rb') as fobj:
                 self.raw_data = fobj.read()
                 self.cb_update_img(reset_width=True)
@@ -101,6 +103,13 @@ class MainWin(QWidget, Ui_ImgExperimentDialog):
             self.img_display.setPixmap(pix.scaled(
                 self.img_display.size(),
                 Qt.KeepAspectRatio, Qt.SmoothTransformation))
+
+    def cb_save(self):
+        """Callback for the Save button"""
+        fname = QFileDialog.getSaveFileName(self, "Save Image As...", "",
+            "PNG (*.png)")
+        if fname and fname[0]:
+            self.pixmap.save(fname[0], "PNG")
 
     def cb_update_img(self, event=None, reset_width=False):
         """Called by anything which changes how the bytes get rendered"""
