@@ -11,7 +11,8 @@ __appname__ = "Pixmap Prober"
 __version__ = "0.1a1"
 __license__ = "MIT"
 
-import math, sys
+import math
+import sys
 
 # pylint: disable=import-error,no-name-in-module
 from PyQt5.QtCore import Qt  # type: ignore
@@ -134,11 +135,10 @@ class MainWin(QWidget, Ui_ImgExperimentDialog):
             self.spin_width.setValue(width)
 
         # TODO: Pad out the final line so it can be displayed too
-        stride = width * stride_factor
-        height = len(data) // stride
+        stride = int(width * stride_factor)
+        height = int(len(data) // stride)
 
-        print(pix_count, width, height, stride)
-        img = QImage(data, width, height, stride, pixfmt)
+        img = QImage(data, int(width), height, stride, pixfmt)
         self.pixmap = QPixmap.fromImage(img)
         self.img_display.setPixmap(self.pixmap)
         self.cb_resized()
@@ -147,6 +147,7 @@ class MainWin(QWidget, Ui_ImgExperimentDialog):
         """Patch Qt's window resize into cb_resized"""
         super(MainWin, self).resizeEvent(event)
         self.cb_resized()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
