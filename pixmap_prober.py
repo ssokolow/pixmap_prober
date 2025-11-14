@@ -70,6 +70,9 @@ class MainWin(QWidget, Ui_ImgExperimentDialog):
         """Callback for the Browse button"""
         fname = QFileDialog.getOpenFileName(self, "Open Data File")
         if fname and fname[0]:
+            self.spin_width.setEnabled(True)
+            self.spin_offset.setEnabled(True)
+            self.combo_format.setEnabled(True)
             with open(fname[0], 'rb') as fobj:
                 self.raw_data = fobj.read()
                 self.cb_update_img(reset_width=True)
